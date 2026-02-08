@@ -1,0 +1,10 @@
+/* Make Quarto sidebar wider */
+.q-sidebar {
+  width: 300px;       /* default ~220px, adjust as needed */
+  min-width: 280px;   /* prevents collapsing */
+}
+
+/* Allow long page names to wrap instead of cutting off */
+.q-sidebar .q-sidebar-link {
+  white-space: normal;
+}

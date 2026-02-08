@@ -1,0 +1,471 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "SAR and Ecotype Project",
+    "section": "",
+    "text": "Welcome to the SAR and Ecosystem Mapping Project. This website documents the methods and results of the project. Use the navigation panel on the top to explore the following sections:\n\n\n\nSAR Setup: Description of data preparation for analyses.\n\nGrid Creation: Creating 10 km × 10 km grid cells across Canada.\n\n\n\n\n\nArea Calculations for Missing EOOs: Estimating range areas where published EOOs are unavailable.\n\nSAR Score Calculations: Binning EOOs and calculating SAR scores.\n\nSAR Extraction Loop: Extracting presence/absence data and applying species scores to each grid cell.\n\nStatic and Interactive Mapping of SAR: Mapping SAR scores across Canada and for individual taxonomic groups.\n\n\n\n\n\nEcosystem Score Calculations: Calculating ecotype scores across ecozones.\n\nEcosystem Extraction Loop: Masking the ecotype raster to each ecozone and reclassifying ecotypes to ecozone-specific scores.\n\nMosaicking Ecozones: Mosaicking individual ecozones to create a national ecotype map.\n\nStatic Mapping of Ecosystems: Creating national combined and individual ecotype maps.\n\nStatic Ecozone Mapping: Creating individual ecozone maps.\n\n\n\n\n\nRaw code on GitHub\nSmall data files on GitHub: Data files are located in both the data and outputs folders\nFigures on GitHub\nInteractive maps on Dropbox: Please note, you must download both the .html file and its associated folder containing dependent files for the maps to function correctly."
+  },
+  {
+    "objectID": "index.html#resources",
+    "href": "index.html#resources",
+    "title": "SAR and Ecotype Project",
+    "section": "",
+    "text": "Raw code on GitHub\nSmall data files on GitHub: Data files are located in both the data and outputs folders\nFigures on GitHub\nInteractive maps on Dropbox: Please note, you must download both the .html file and its associated folder containing dependent files for the maps to function correctly."
+  },
+  {
+    "objectID": "10-Ecozone_Mapping.html",
+    "href": "10-Ecozone_Mapping.html",
+    "title": "Static Ecozone Mapping",
+    "section": "",
+    "text": "This section creates individual maps for each of Canada’s 15 ecozones, displaying log‑transformed ecotype scores within their respective boundaries.\nEach map displays:\n\nLog‑transformed ecotype scores.\nLegends reporting the original (non‑log) ecotype scores for easy interpretation.\n\nInputs\n\ndata/Ecozones/ecozones.shp: Ecozone shapefile (vector outlines).\noutputs/ecozone_rasters/log scores/*_log_score_raster.rds: Log‑transformed mosaics for each ecozone.\n\n\n\n\nlibrary(terra)\nlibrary(fields)\nlibrary(rnaturalearth)\nlibrary(sf)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "10-Ecozone_Mapping.html#overview",
+    "href": "10-Ecozone_Mapping.html#overview",
+    "title": "Static Ecozone Mapping",
+    "section": "",
+    "text": "This section creates individual maps for each of Canada’s 15 ecozones, displaying log‑transformed ecotype scores within their respective boundaries.\nEach map displays:\n\nLog‑transformed ecotype scores.\nLegends reporting the original (non‑log) ecotype scores for easy interpretation.\n\nInputs\n\ndata/Ecozones/ecozones.shp: Ecozone shapefile (vector outlines).\noutputs/ecozone_rasters/log scores/*_log_score_raster.rds: Log‑transformed mosaics for each ecozone.\n\n\n\n\nlibrary(terra)\nlibrary(fields)\nlibrary(rnaturalearth)\nlibrary(sf)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "10-Ecozone_Mapping.html#example-code-arctic-cordillera",
+    "href": "10-Ecozone_Mapping.html#example-code-arctic-cordillera",
+    "title": "Static Ecozone Mapping",
+    "section": "Example Code: Arctic Cordillera",
+    "text": "Example Code: Arctic Cordillera\n\n###Arctic Cordillera\n\n# Load the mosaic raster .tif\nscore_log_raster &lt;- readRDS(\"outputs/ecozone_rasters/log scores/Arctic_Cordillera_log_score_raster.rds\")\nscore_log_raster &lt;- unwrap(score_log_raster)\n\n#get min and max of raster values (log scale)\nlog_range &lt;- minmax(score_log_raster)\nlog_min &lt;- log_range[\"min\", 1]\nlog_max &lt;- log_range[\"max\", 1]\n\n#define custom color palette\nmy_colors &lt;- c(\"#fff9db\", \"#fee485\", \"#fca944\", \"#ed4801\", \"#860a03\", \"#221c05\")\ncustom_palette &lt;- colorRampPalette(my_colors)(100)\n\npar(oma = c(0, 0, 0, 4))\n\n#plot without legend - will add in later\nplot(score_log_raster, col = custom_palette, legend = FALSE, main = \"Arctic Cordillera Ecozone\")\n\n#min and max values from spreadsheet\nmin_val &lt;- 151\nmax_val &lt;- 28865\n\nlabel_ticks_orig &lt;- generate_pretty_log_breaks(min_val, max_val, 5)\nlabel_ticks_log &lt;- log10(label_ticks_orig + 1)\n\n#add legend with original scores rather than log scores\nimage.plot(legend.only = TRUE,\n           zlim = c(log_min, log_max),\n           col = custom_palette,\n           legend.width = 1.5,\n           legend.shrink = 0.8,\n           legend.mar = 6.5,  \n           axis.args = list(at = label_ticks_log,\n                            labels = format(label_ticks_orig, big.mark = \",\"),\n                            cex.axis = 0.9,\n                            las = 1),\n           legend.args = list(text = \"Score\",\n                              side = 3,    \n                              font = 2,  \n                              line = 1,  \n                              adj = 0.1))\n\n\n#Plot ecozone with it\necozones &lt;- st_read(\"data/Ecozones/ecozones.shp\", quiet = TRUE)\necozones &lt;- st_transform(ecozones, crs(score_log_raster))\narctic_cordillera &lt;- ecozones[ecozones$ZONE_NAME == \"Arctic Cordillera\", ]\nplot(arctic_cordillera$geometry, add = TRUE, border = \"black\", lwd = 1)"
+  },
+  {
+    "objectID": "10-Ecozone_Mapping.html#all-ecozones",
+    "href": "10-Ecozone_Mapping.html#all-ecozones",
+    "title": "Static Ecozone Mapping",
+    "section": "All Ecozones",
+    "text": "All Ecozones\nAll ecozone maps were produced following the same workflow as the Arctic Cordillera ecozone. Raw code for each ecozone is available on GitHub."
+  },
+  {
+    "objectID": "10-Ecozone_Mapping.html#outputs",
+    "href": "10-Ecozone_Mapping.html#outputs",
+    "title": "Static Ecozone Mapping",
+    "section": "Outputs",
+    "text": "Outputs\n\nArctic Cordillera Ecozone_outline.pdf\nAtlantic Maritime Ecozone_outline.pdf\nBoreal Cordillera Ecozone_outline.pdf\nBoreal Plain Ecozone_outline.pdf\nBoreal Shield Ecozone_outline.pdf\nHudson Plain Ecozone_outline.pdf\nMixedwood Plain Ecozone_outline.pdf\nMontane Cordillera Ecozone_outline.pdf\nNorthern Arctic Ecozone_outline.pdf\nPacific Maritime Ecozone_outline.pdf\nPrairie Ecozone_outline.pdf\nSouthern Arctic Ecozone_outline.pdf\nTaiga Cordillera Ecozone_outline.pdf\nTaiga Plain Ecozone_outline.pdf\nTaiga Shield Ecozone_outline.pdf"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html",
+    "href": "08-Mosaic_Ecozones.html",
+    "title": "Mosaicking Ecozones",
+    "section": "",
+    "text": "This section outlines the mosaicking of each ecozone raster to create a single nationwide map of ecotype scores.\nEach ecozone was processed independently to assign scores to its ecotypes, and then these individual rasters are mosaicked back together to produce the complete Canada-wide score raster.\nInputs\n\noutputs/ecozone_rasters/: Folder containing all 15 ecozone rasters (*_score_raster.tif)\n\n\n\n\nlibrary(terra)"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html#overview",
+    "href": "08-Mosaic_Ecozones.html#overview",
+    "title": "Mosaicking Ecozones",
+    "section": "",
+    "text": "This section outlines the mosaicking of each ecozone raster to create a single nationwide map of ecotype scores.\nEach ecozone was processed independently to assign scores to its ecotypes, and then these individual rasters are mosaicked back together to produce the complete Canada-wide score raster.\nInputs\n\noutputs/ecozone_rasters/: Folder containing all 15 ecozone rasters (*_score_raster.tif)\n\n\n\n\nlibrary(terra)"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html#mosaic-loop",
+    "href": "08-Mosaic_Ecozones.html#mosaic-loop",
+    "title": "Mosaicking Ecozones",
+    "section": "Mosaic Loop",
+    "text": "Mosaic Loop\n\nData Preparation\n\n# Set mosaic output directory\ntif_dir &lt;- \"outputs/ecozone_rasters/\"\noutput_dir &lt;- \"outputs/ecozone_rasters/mosaic\"\n\n# List all *_score_raster.tif files\ntif_files &lt;- list.files(tif_dir, pattern = \"_score_raster\\\\.tif$\", full.names = TRUE)\n\n# Sort for consistent ordering\ntif_files &lt;- sort(tif_files)\n\n# Create initial working mosaic with the first raster\ncurrent_mosaic &lt;- file.path(output_dir, \"mosaic.tif\")\nfile.copy(tif_files[1], current_mosaic, overwrite = TRUE)\n\n\n\nLoop Through and Join Ecozones\n\n# Set mosaic output directory\nfor (i in 2:length(tif_files)) {\n  cat(\"Mosaicking\", basename(tif_files[i]), \"...\\n\")\n  \n  r_base &lt;- rast(current_mosaic)\n  r_new &lt;- rast(tif_files[i])\n  \n  temp_mosaic &lt;- file.path(output_dir, paste0(\"temp_mosaic_\", i, \".tif\"))\n  \n  mosaic_r &lt;- mosaic(r_base, r_new, fun = \"first\",\n                     filename = temp_mosaic,\n                     overwrite = TRUE,\n                     wopt = list(datatype = \"FLT4S\", gdal = c(\"COMPRESS=LZW\", \"TILED=YES\")))\n  \n  # Update working mosaic\n  file.copy(temp_mosaic, current_mosaic, overwrite = TRUE)\n  file.remove(temp_mosaic)\n}\n\n# Save the final mosaic\noutput_mosaic &lt;- file.path(output_dir, \"Canada_Ecozone_Score_Mosaic_ALL.tif\")\nfile.copy(current_mosaic, output_mosaic, overwrite = TRUE)\n\ncat(\"Final mosaic complete. Saved to:\\n\", output_mosaic, \"\\n\")"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html#log-scores",
+    "href": "08-Mosaic_Ecozones.html#log-scores",
+    "title": "Mosaicking Ecozones",
+    "section": "Log Scores",
+    "text": "Log Scores\n\n# Load the final raster if not already loaded\nfinal_path &lt;- \"outputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_ALL.tif\"\nr_final &lt;- rast(final_path)\n\n# Set values &lt;= 0 to NA (log undefined for 0 or negative values)\nr_final[r_final &lt;= 0] &lt;- NA\n\n# Apply log10 transformation\nr_log &lt;- log10(r_final)\n\n\n# Plot\nplot(r_log, main = \"Log-Transformed Ecotype Raster\")\n\n\n\n\n\n\n\nplot(r_mosaic, main = \"Original Ecotype Raster\")"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html#export-data-.csv",
+    "href": "08-Mosaic_Ecozones.html#export-data-.csv",
+    "title": "Mosaicking Ecozones",
+    "section": "Export Data (.csv)",
+    "text": "Export Data (.csv)\n\nsaveRDS(r_log, \"outputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.rds\")\n\nwriteRaster(\n  r_log,\n  \"outputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.tif\",\n  overwrite = TRUE\n)"
+  },
+  {
+    "objectID": "08-Mosaic_Ecozones.html#outputs",
+    "href": "08-Mosaic_Ecozones.html#outputs",
+    "title": "Mosaicking Ecozones",
+    "section": "Outputs",
+    "text": "Outputs\n\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_ALL.tif\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.tif\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.rds"
+  },
+  {
+    "objectID": "06-Calculated_Scores_Ecotypes.html",
+    "href": "06-Calculated_Scores_Ecotypes.html",
+    "title": "Ecosystem Score Calculations",
+    "section": "",
+    "text": "The calculation of ecotype scores involved a single step of area-based rarity scoring. Scores were calculated across all ecozones, with each ecotype occurrence within each ecozone treated independently. For example, wetlands in the Northern Arctic ecozone and wetlands in the Prairie ecozone each received separate scores based solely on their area within that ecozone. This approach resulted in 145 unique ecotype‑ecozone scores.\nScores were calculated using the following formula:\n\\[\n\\text{Score} = \\left(\\frac{1{,}000{,}000{,}000}{n}\\right) \\times\n\\left(\\frac{\\text{Project Area (km}^2\\text{)}}{\\text{Area of Ecotype in Ecozone (km}^2\\text{)}}\\right)\n\\]\nWhere:\n\nProject Area: 1 km²\nn: 145 (number of unique ecotype-ecozone scores)\nArea of Ecotype in Ecozone: ecotype-specific scores based on area\n\nInputs\n\ndata/Land cover type by ecozone with names 2025-02 - cleaned.csv: Ecozone and ecotype metadata\n\n\n\n\nlibrary(dplyr)\nlibrary(readr)\nlibrary(knitr)"
+  },
+  {
+    "objectID": "06-Calculated_Scores_Ecotypes.html#overview",
+    "href": "06-Calculated_Scores_Ecotypes.html#overview",
+    "title": "Ecosystem Score Calculations",
+    "section": "",
+    "text": "The calculation of ecotype scores involved a single step of area-based rarity scoring. Scores were calculated across all ecozones, with each ecotype occurrence within each ecozone treated independently. For example, wetlands in the Northern Arctic ecozone and wetlands in the Prairie ecozone each received separate scores based solely on their area within that ecozone. This approach resulted in 145 unique ecotype‑ecozone scores.\nScores were calculated using the following formula:\n\\[\n\\text{Score} = \\left(\\frac{1{,}000{,}000{,}000}{n}\\right) \\times\n\\left(\\frac{\\text{Project Area (km}^2\\text{)}}{\\text{Area of Ecotype in Ecozone (km}^2\\text{)}}\\right)\n\\]\nWhere:\n\nProject Area: 1 km²\nn: 145 (number of unique ecotype-ecozone scores)\nArea of Ecotype in Ecozone: ecotype-specific scores based on area\n\nInputs\n\ndata/Land cover type by ecozone with names 2025-02 - cleaned.csv: Ecozone and ecotype metadata\n\n\n\n\nlibrary(dplyr)\nlibrary(readr)\nlibrary(knitr)"
+  },
+  {
+    "objectID": "06-Calculated_Scores_Ecotypes.html#calculate-ecotype-scores",
+    "href": "06-Calculated_Scores_Ecotypes.html#calculate-ecotype-scores",
+    "title": "Ecosystem Score Calculations",
+    "section": "Calculate Ecotype Scores",
+    "text": "Calculate Ecotype Scores\n\n# Load in metadata\necozone_data &lt;- read.csv(\"data/Land cover type by ecozone with names 2025-02 - cleaned.csv\")\n\n# Filter to remove snow and ice\necozone_data &lt;- ecozone_data %&gt;%\n  filter(Class != \"Snow and Ice\")\n\n# Set the scaling factor and n value\nn &lt;- 145\nscaling_factor &lt;- 1000000000 / n\n\n# Clean data and calculate scores\necotype_scores &lt;- ecozone_data %&gt;%\n  filter(!is.na(`Area..km2.`), `Area..km2.` &gt; 0) %&gt;%  \n  mutate(\n    Ecotype = Class,\n    Ecozone = Ecozone.name,\n    RawScore = 1 / `Area..km2.`,                      \n    Score = scaling_factor * RawScore             \n  ) %&gt;%\n  select(Ecozone, Ecotype, `Area..km2.`, Score)\n\n# Preview result\nknitr::kable(head(ecotype_scores, 10), digits = 2, caption = \"Sample of Ecotype Scores\")\n\n\n\n\nSample of Ecotype Scores\n\n\n\n\n\n\n\n\nEcozone\nEcotype\nArea..km2.\nScore\n\n\n\n\nArctic Cordillera\nIntertidal\n415.13\n16612.83\n\n\nArctic Cordillera\nTemperate or sub-polar needleleaf forest\n238.93\n28864.64\n\n\nArctic Cordillera\nSub-polar or polar shrubland-lichen-moss\n2059.27\n3349.02\n\n\nArctic Cordillera\nSub-polar or polar grassland-lichen-moss\n33220.22\n207.60\n\n\nArctic Cordillera\nSub-polar or polar barren-lichen-moss\n26261.36\n262.61\n\n\nArctic Cordillera\nBarren lands\n45740.65\n150.78\n\n\nArctic Cordillera\nWater\n12668.54\n544.38\n\n\nNorthern Arctic\nIntertidal\n10797.60\n638.71\n\n\nNorthern Arctic\nTemperate or sub-polar needleleaf forest\n216.63\n31834.97\n\n\nNorthern Arctic\nSub-polar taiga needleleaf forest\n344.19\n20036.76"
+  },
+  {
+    "objectID": "06-Calculated_Scores_Ecotypes.html#export-data-.csv",
+    "href": "06-Calculated_Scores_Ecotypes.html#export-data-.csv",
+    "title": "Ecosystem Score Calculations",
+    "section": "Export Data (.csv)",
+    "text": "Export Data (.csv)\n\nwrite_csv(ecotype_scores, \"outputs/Ecotype_Scores_Scaled_Final.csv\")"
+  },
+  {
+    "objectID": "06-Calculated_Scores_Ecotypes.html#outputs",
+    "href": "06-Calculated_Scores_Ecotypes.html#outputs",
+    "title": "Ecosystem Score Calculations",
+    "section": "Outputs",
+    "text": "Outputs\n\noutputs/Ecotype_Scores_Scaled_Final.csv"
+  },
+  {
+    "objectID": "04-Loop_SAR.html",
+    "href": "04-Loop_SAR.html",
+    "title": "SAR Extraction Loop",
+    "section": "",
+    "text": "This section outlines the processing of 441 species range maps to extract presence/absence data across a 10 km x 10 km grid.\nFor each raster:\n\nThe species range is overlaid with the grid.\nGrid cells overlapping the species range are marked as present (1) or absent (0).\nIn grids where a species is present, 1s are replaced with the species-specific score.\n\nDue to runtime constraints (approximately 10 hours for full processing), a subset of 2 species is demonstrated below for illustrative purposes. Full data and code are available separately.\nInputs\n\ndata/Master_list_SAR.csv\noutputs/grid/grid_10km_Albers.rds\noutputs/SAR_Scores.csv\nSpecies raster files from data/raster files\noutputs/output_grid_sf.rds: full loop output containing presence and score columns for all species (only a 2‑species subset is run in the example code, but this complete file is used for later analyses)\n\n\n\n\nlibrary(terra)\nlibrary(sf)\nlibrary(exactextractr)\nlibrary(dplyr)\nlibrary(rnaturalearth)\nlibrary(ggplot2)"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#overview",
+    "href": "04-Loop_SAR.html#overview",
+    "title": "SAR Extraction Loop",
+    "section": "",
+    "text": "This section outlines the processing of 441 species range maps to extract presence/absence data across a 10 km x 10 km grid.\nFor each raster:\n\nThe species range is overlaid with the grid.\nGrid cells overlapping the species range are marked as present (1) or absent (0).\nIn grids where a species is present, 1s are replaced with the species-specific score.\n\nDue to runtime constraints (approximately 10 hours for full processing), a subset of 2 species is demonstrated below for illustrative purposes. Full data and code are available separately.\nInputs\n\ndata/Master_list_SAR.csv\noutputs/grid/grid_10km_Albers.rds\noutputs/SAR_Scores.csv\nSpecies raster files from data/raster files\noutputs/output_grid_sf.rds: full loop output containing presence and score columns for all species (only a 2‑species subset is run in the example code, but this complete file is used for later analyses)\n\n\n\n\nlibrary(terra)\nlibrary(sf)\nlibrary(exactextractr)\nlibrary(dplyr)\nlibrary(rnaturalearth)\nlibrary(ggplot2)"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#copy-species-raster-files-optional",
+    "href": "04-Loop_SAR.html#copy-species-raster-files-optional",
+    "title": "SAR Extraction Loop",
+    "section": "Copy Species Raster Files (Optional)",
+    "text": "Copy Species Raster Files (Optional)\nAll species raster files listed in the master CSV are filtered and copied to a new folder for processing.\n\nAssign Folders\n\n# Set file paths\ncsv_path &lt;- \"data/Master_list_SAR.csv\"\nsource_folder &lt;- \"data/raster files/\"\ndestination_folder &lt;- \"data/filtered raster files/\"\n\n\n\nCopy Files\n\n#\n# Read master species list\nraster_files &lt;- read.csv(csv_path, stringsAsFactors = FALSE)\n\n# Get unique raster file names\nfile_names &lt;- unique(na.omit(raster_files$File_name))\n\n# Copy matching raster files\nfor (file_name in file_names) {\n  source_file &lt;- file.path(source_folder, file_name)\n  dest_file &lt;- file.path(destination_folder, file_name)\n\n  if (!file.exists(dest_file) && file.exists(source_file)) {\n    file.copy(from = source_file, to = dest_file, overwrite = FALSE)\n  }\n}"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#sample-loop",
+    "href": "04-Loop_SAR.html#sample-loop",
+    "title": "SAR Extraction Loop",
+    "section": "Sample Loop",
+    "text": "Sample Loop\nThe following code demonstrates the presence/absence extraction process for a sample of 2 species (from a total of 441).\nThe loop performs the following steps:\n\nIdentifies the corresponding species metadata.\nProcesses the raster to identify grid cells with species presence.\nOverlays them on the spatial grid, creating two new columns for each species:\n\n\npresence_&lt;species_name&gt;: binary indicator (1 = presence, 0 = absence).\nvalue_&lt;species_name&gt;: species score assigned to occupied cells.\n\nOutput is saved after each iteration to preserve progress in case of interruptions.\n\n# Load spatial grid and species scores\ngrid_sf &lt;- readRDS(\"outputs/grid/grid_10km_Albers.rds\")\nspecies_info &lt;- read.csv(\"outputs/SAR_Scores.csv\")\n\n# List raster files to be processed\nraster_files &lt;- list.files(\"data/filtered raster files/\", pattern = \"*.tif\", full.names = TRUE)\n\n# Process a subset of 2 species (Eastern Hog-nosed Snake and Wood Turtle)\ntarget_files &lt;- c(\"COSEWICID_301_1KM.tif\", \"COSEWICID_286_1KM.tif\")\nsubset_raster_files &lt;- raster_files[basename(raster_files) %in% target_files]\n\n# Output file path \noutput_file_path &lt;- \"outputs/output_grid_sf_sample.rds\"\n\n# Loop through species\nfor (i in seq_along(subset_raster_files)) {\n  tryCatch({\n    raster_file_name &lt;- basename(subset_raster_files[i])\n    \n    # Match raster file with species metadata\n    species_info_row &lt;- species_info[species_info$File_name == raster_file_name, ]\n    if (nrow(species_info_row) == 0) {\n      stop(paste(\"No species info found for file\", raster_file_name))\n    }\n    # Load and reproject grid to raster CRS\n    r &lt;- rast(subset_raster_files[i])\n    grid_sf &lt;- st_transform(grid_sf, crs = crs(r))\n\n    # Extract presence/absence using exactextractr\n    presence &lt;- exact_extract(r, grid_sf, fun = function(values, coverage_fraction) {\n      as.integer(any(!is.na(values)))\n    })\n\n    # Clean species name for column naming\n    clean_species_name &lt;- gsub(\"[^[:alnum:]_]\", \"_\", species_info_row$Common_name)\n\n    # Attach presence and score columns to grid\n    grid_sf[[paste0(\"presence_\", clean_species_name)]] &lt;- presence\n    grid_sf[[paste0(\"value_\", clean_species_name)]] &lt;- ifelse(presence == 1, species_info_row$Score, 0)\n\n    # Save updated grid after each iteration (keep progress if loop fails)\n    saveRDS(grid_sf, file = output_file_path)\n\n    # Optional messages as loop progresses\n    print(paste(\"Done iteration\", i, \"out of\", length(subset_raster_files), \"at\", Sys.time()))\n  }, error = function(e) {\n    print(paste(\"Error in iteration\", i, \":\", e$message))\n  })\n}"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#sample-plot",
+    "href": "04-Loop_SAR.html#sample-plot",
+    "title": "SAR Extraction Loop",
+    "section": "Sample Plot",
+    "text": "Sample Plot\nThe map below visualizes the presence of Wood Turtle and Eastern Hog-nosed Snake from the above loop."
+  },
+  {
+    "objectID": "04-Loop_SAR.html#summing-scores-per-grid-cell",
+    "href": "04-Loop_SAR.html#summing-scores-per-grid-cell",
+    "title": "SAR Extraction Loop",
+    "section": "Summing Scores per Grid Cell",
+    "text": "Summing Scores per Grid Cell\nAfter looping through all species, total scores per grid cell are calculated.\n\nLoad Necessary Files\nThe full dataset resulting from the processing of all species is loaded here, extending beyond the two-species example demonstrated previously.\n\n# Load in output grid from above loop\nsummed_scores &lt;- readRDS(\"outputs/output_grid_sf.rds\")\n\n\n\nPrepare Data\n\n# Drop geometry\ngrid_10_attributes &lt;- st_drop_geometry(summed_scores)\n\n# Select only value columns (columns with scores)\nvalue_columns &lt;- grep(\"value\", colnames(grid_10_attributes), value = TRUE)\n\n# Ensure those columns are numeric\ngrid_10_attributes[, value_columns] &lt;- lapply(grid_10_attributes[, value_columns], function(x) {\n  as.numeric(as.character(x))\n})\n\n\n\nSum Data\n\n# Calculate row sums\nsummed_scores$sum_values &lt;- rowSums(grid_10_attributes[, value_columns], na.rm = TRUE)\n\n# Replace 0s with NA so they plot as grey\nsummed_scores$sum_values[summed_scores$sum_values == 0] &lt;- NA\n\n\n\nExample Summed Scores Table\n\n# Load the grid with turtle scores\ngrid_sf &lt;- readRDS(\"outputs/output_grid_sf_sample.rds\")\n\n# Drop geometry\ngrid_df &lt;- st_drop_geometry(grid_sf)\n\n# Ensure column names match \nvalue_cols &lt;- c(\"value_Eastern_Hog_nosed_Snake\", \"value_Wood_Turtle\")\n\n# Add a sum column just for these two species\ngrid_df$value_sum &lt;- rowSums(grid_df[, value_cols], na.rm = TRUE)\n\ncols_to_show &lt;- c(\"grid_id\", \"value_Eastern_Hog_nosed_Snake\", \"value_Wood_Turtle\", \"value_sum\")\n\n# Find rows where both turtles have scores\noverlap_rows &lt;- grid_df[\n  grid_df$value_Eastern_Hog_nosed_Snake &gt; 0 & grid_df$value_Wood_Turtle &gt; 0,\n  ][1:3, c(value_cols, \"value_sum\")]\n\n# Find rows where only one turtle has a score\nnonoverlap_rows &lt;- grid_df[\n  xor(grid_df$value_Eastern_Hog_nosed_Snake &gt; 0, grid_df$value_Wood_Turtle &gt; 0),\n  ][1:2, c(value_cols, \"value_sum\")]\n\n# Combine overlapping and non-overlapping rows\nexample_rows &lt;- rbind(overlap_rows, nonoverlap_rows)\n\n# Turn row names into a column called \"grid_id\"\nexample_rows &lt;- tibble::rownames_to_column(example_rows, var = \"grid_id\")\n\n# Display the table with proper labels\nknitr::kable(example_rows, caption = \"Example Dataset of Summed Scores\")\n\n\n\n\nExample Dataset of Summed Scores\n\n\ngrid_id\nvalue_Eastern_Hog_nosed_Snake\nvalue_Wood_Turtle\nvalue_sum\n\n\n\n\n88012\n1591.09\n917.9365\n2509.0264\n\n\n88013\n1591.09\n917.9365\n2509.0264\n\n\n88014\n1591.09\n917.9365\n2509.0264\n\n\n77204\n0.00\n917.9365\n917.9365\n\n\n77205\n0.00\n917.9365\n917.9365"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#save-data",
+    "href": "04-Loop_SAR.html#save-data",
+    "title": "SAR Extraction Loop",
+    "section": "Save Data",
+    "text": "Save Data\n\nsaveRDS(summed_scores, \"outputs/output_grid_sf_score.rds\")\n\n\nsaveRDS(summed_scores, \"F:/SAR Project/outputs/output_grid_sf_score.rds\")"
+  },
+  {
+    "objectID": "04-Loop_SAR.html#outputs",
+    "href": "04-Loop_SAR.html#outputs",
+    "title": "SAR Extraction Loop",
+    "section": "Outputs",
+    "text": "Outputs\nThe following files are produced from this process:\n\noutputs/output_grid_sf.rds: Contains all 441 species processed, with individual presence_ and value_ columns for each species. This file serves as an intermediate output prior to the subsequent summarization of scores.\noutputs/output_grid_sf_score.rds: Same as above, with the addition of a sum_values column representing the total score across all species per grid cell."
+  },
+  {
+    "objectID": "02-Calculated_Scores_SAR.html",
+    "href": "02-Calculated_Scores_SAR.html",
+    "title": "SAR Score Calculations",
+    "section": "",
+    "text": "The scoring process for SAR involved two steps:\n\nBinning EOO values into predefined categories\nCalculating species‑level scores using the formula outlined below:\n\n\\[\n\\text{Score} =\n\\left( \\frac{1e9}{\\text{Number of SAR}} \\right)\n\\times\n\\left( \\frac{\\text{Project area (km}^2\\text{)}}{\\text{Binned EOO}} \\right)\n\\]\nWhere:\n\nNumber of SAR: 838 (at the time of project start)\nProject area: 100 km² (10 km × 10 km grid cell)\nBinned EOO: species-specific value based on EOO binning\n\nInputs\n\ndata/Master_list_SAR.csv\n\n\n\n\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "02-Calculated_Scores_SAR.html#overview",
+    "href": "02-Calculated_Scores_SAR.html#overview",
+    "title": "SAR Score Calculations",
+    "section": "",
+    "text": "The scoring process for SAR involved two steps:\n\nBinning EOO values into predefined categories\nCalculating species‑level scores using the formula outlined below:\n\n\\[\n\\text{Score} =\n\\left( \\frac{1e9}{\\text{Number of SAR}} \\right)\n\\times\n\\left( \\frac{\\text{Project area (km}^2\\text{)}}{\\text{Binned EOO}} \\right)\n\\]\nWhere:\n\nNumber of SAR: 838 (at the time of project start)\nProject area: 100 km² (10 km × 10 km grid cell)\nBinned EOO: species-specific value based on EOO binning\n\nInputs\n\ndata/Master_list_SAR.csv\n\n\n\n\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "02-Calculated_Scores_SAR.html#calculate-sar-scores",
+    "href": "02-Calculated_Scores_SAR.html#calculate-sar-scores",
+    "title": "SAR Score Calculations",
+    "section": "Calculate SAR Scores",
+    "text": "Calculate SAR Scores\n\n# Read in master SAR list\n# Master SAR list contains SAR, EOOs, Binned EOOs, Taxon, SAR Status, Range Map ID, and more\nMaster_list &lt;- read.csv(\"data/Master_list_SAR.csv\")\n\n# Set bins and bin EOOs\nSARrange &lt;- Master_list %&gt;%\n  mutate(EOO_binned = as.numeric(as.character(cut(EOO,\n            breaks = c(-1, 5000, 20000, 130000, 100000000),\n            right = FALSE,\n            labels = c(2500, 12500, 75000, 130000)))))\n\n# Calculate scores using binned EOOs\n# Number of SAR at time of project was 838\n# Project size was set to 100km2 to match grid cell size\nSARrangeScore &lt;- SARrange %&gt;%\n  mutate(Score = (1e9 / 838) * (100 / EOO_binned))"
+  },
+  {
+    "objectID": "02-Calculated_Scores_SAR.html#export-data-.csv",
+    "href": "02-Calculated_Scores_SAR.html#export-data-.csv",
+    "title": "SAR Score Calculations",
+    "section": "Export Data (.csv)",
+    "text": "Export Data (.csv)\n\n# Write .csv file with scores\nwrite.csv(SARrangeScore, \"outputs/SAR_Scores.csv\")"
+  },
+  {
+    "objectID": "02-Calculated_Scores_SAR.html#outputs",
+    "href": "02-Calculated_Scores_SAR.html#outputs",
+    "title": "SAR Score Calculations",
+    "section": "Outputs",
+    "text": "Outputs\n\noutputs/SAR_Scores.csv"
+  },
+  {
+    "objectID": "01-Range_Map_Area_Calculations.html",
+    "href": "01-Range_Map_Area_Calculations.html",
+    "title": "Area Calculations for Missing EOOs",
+    "section": "",
+    "text": "EOO values were unavailable for 17 species. For these species, total range area was estimated using 1 km² raster maps from NCC.\nThe workflow consisted of the following steps:\n\nLoad the species’ range raster.\nCalculate the area of each raster cell (m²).\nSum the area of all occupied (non‑NA) cells.\nConvert the total area to km².\n\nInputs This section uses species range rasters (from NCC) located in:\n\ndata/raster files\n\n\n\n\nlibrary(terra)\nlibrary(dplyr)\nlibrary(knitr)"
+  },
+  {
+    "objectID": "01-Range_Map_Area_Calculations.html#overview",
+    "href": "01-Range_Map_Area_Calculations.html#overview",
+    "title": "Area Calculations for Missing EOOs",
+    "section": "",
+    "text": "EOO values were unavailable for 17 species. For these species, total range area was estimated using 1 km² raster maps from NCC.\nThe workflow consisted of the following steps:\n\nLoad the species’ range raster.\nCalculate the area of each raster cell (m²).\nSum the area of all occupied (non‑NA) cells.\nConvert the total area to km².\n\nInputs This section uses species range rasters (from NCC) located in:\n\ndata/raster files\n\n\n\n\nlibrary(terra)\nlibrary(dplyr)\nlibrary(knitr)"
+  },
+  {
+    "objectID": "01-Range_Map_Area_Calculations.html#example-island-blue",
+    "href": "01-Range_Map_Area_Calculations.html#example-island-blue",
+    "title": "Area Calculations for Missing EOOs",
+    "section": "Example: Island Blue",
+    "text": "Example: Island Blue\nThe code below demonstrates the range area calculation for Island Blue.\n\n# Load raster data in for Island Blue\nrange_raster &lt;- rast(\"data/raster files/COSEWICID_651_1KM.tif\")\n\n# Calculate the cell area in square meters\ncell_areas &lt;- cellSize(range_raster)\n\n# Sum the area of all cells that are not NA (cells where the species is present)\n# Calculates the total area of all non-NA cells by summing the individual areas\ntotal_area_m2 &lt;- global(cell_areas * !is.na(range_raster), \"sum\", na.rm=TRUE)[1,1]\n\n# Convert the area from square meters to square kilometers\ntotal_area_km2 &lt;- total_area_m2 / 1e6\n\n# Print the final area\ncat(\"Total area of Island Blue range map:\", round(total_area_km2, 2), \"km²\\n\")\n\n\n\nTotal area of Island Blue range map: 2799.03 km²"
+  },
+  {
+    "objectID": "01-Range_Map_Area_Calculations.html#full-loop",
+    "href": "01-Range_Map_Area_Calculations.html#full-loop",
+    "title": "Area Calculations for Missing EOOs",
+    "section": "Full Loop",
+    "text": "Full Loop\nThis loop goes through each of the 17 species without published EOO data. For each species the total range area is calculated and compiled into a summary table. Results were then added to data/Master_list_SAR.csv\n\n# Set raster file locations and names for each species\nspecies_files &lt;- c(\n  \"Island Blue\" = \"data/raster files/COSEWICID_651_1KM.tif\",\n  \"Purple Sanicle\" = \"data/raster files/COSEWICID_677_1KM.tif\",\n  \"Vancouver Island Beggarticks\" = \"data/raster files/COSEWICID_688_1KM.tif\",\n  \"Fernald's Milk-vetch\" = \"data/raster files/COSEWICID_4_1KM.tif\",\n  \"Engelmann's Quillwort\" = \"data/raster files/COSEWICID_178_1KM.tif\",\n  \"Gattinger's Agalinis\" = \"data/raster files/COSEWICID_180_1KM.tif\",\n  \"American Ginseng\" = \"data/raster files/COSEWICID_217_1KM.tif\",\n  \"Bashful Bulrush\" = \"data/raster files/COSEWICID_250_1KM.tif\",\n  \"Juniper Sedge\" = \"data/raster files/COSEWICID_575_1KM.tif\",\n  \"Barrens Willow\" = \"data/raster files/COSEWICID_678_1KM.tif\",\n  \"Loggerhead Shrike migrans subspecies\" = \"data/raster files/COSEWICID_26_1KM.tif\",\n  \"Scarlet Ammannia\" = \"data/raster files/COSEWICID_577_1KM.tif\",\n  \"Riddell's Goldenrod\" = \"data/raster files/COSEWICID_640_1KM.tif\",\n  \"American Badger jeffersonii subspecies (Eastern population)\" = \"data/raster files/COSEWICID_1230_1KM.tif\",\n  \"American Badger jeffersonii subspecies (Western population)\" = \"data/raster files/COSEWICID_1229_1KM.tif\",\n  \"Western Bumble Bee mckayi subspecies\" = \"data/raster files/COSEWICID_1256_1KM.tif\",\n  \"Western Bumble Bee occidentalis subspecies\" = \"data/raster files/COSEWICID_1267_1KM.tif\"\n)\n\n# Create an empty data frame to store results\nresults_df &lt;- data.frame(Species = character(), Total_Area_km2 = numeric(), stringsAsFactors = FALSE)\n\n# Loop over each species and calculate the total range area\nfor(species in names(species_files)) {\n  \n  # Load species raster\n  range_raster &lt;- rast(species_files[species])\n  \n  # Calculate the cell area in square meters\n  cell_areas &lt;- cellSize(range_raster)\n  \n  # Sum the area of all cells where raster is not NA\n  # Calculates the total area of all valid cells by summing the individual areas\n  total_area_m2 &lt;- global(cell_areas * !is.na(range_raster), \"sum\", na.rm=TRUE)[1,1]\n  \n  # Convert the area from square meters to square kilometers\n  total_area_km2 &lt;- total_area_m2 / 1e6\n  \n  # Bind results to the summary table\n  results_df &lt;- rbind(results_df,\n                      data.frame(Species = species,\n                                 Total_Area_km2 = round(total_area_km2, 2),\n                                 stringsAsFactors = FALSE))\n}\n\n# Display the results in a table\nkable(results_df, caption = \"Range Area for Species Missing EOO (n=17)\")\n\n\n\n\nRange Area for Species Missing EOO (n=17)\n\n\n\n\n\n\nSpecies\nTotal_Area_km2\n\n\n\n\nIsland Blue\n2799.03\n\n\nPurple Sanicle\n664.01\n\n\nVancouver Island Beggarticks\n1287.01\n\n\nFernald’s Milk-vetch\n118.00\n\n\nEngelmann’s Quillwort\n258.00\n\n\nGattinger’s Agalinis\n795.01\n\n\nAmerican Ginseng\n115452.09\n\n\nBashful Bulrush\n180.00\n\n\nJuniper Sedge\n185.00\n\n\nBarrens Willow\n562.00\n\n\nLoggerhead Shrike migrans subspecies\n19976.19\n\n\nScarlet Ammannia\n475.00\n\n\nRiddell’s Goldenrod\n2479.02\n\n\nAmerican Badger jeffersonii subspecies (Eastern population)\n11711.11\n\n\nAmerican Badger jeffersonii subspecies (Western population)\n155655.47\n\n\nWestern Bumble Bee mckayi subspecies\n634144.34\n\n\nWestern Bumble Bee occidentalis subspecies\n772365.23"
+  },
+  {
+    "objectID": "01-Range_Map_Area_Calculations.html#outputs",
+    "href": "01-Range_Map_Area_Calculations.html#outputs",
+    "title": "Area Calculations for Missing EOOs",
+    "section": "Outputs",
+    "text": "Outputs\n\nAll SAR now have EOOs or EOO equivalents, and are prepared for binning and score calculations."
+  },
+  {
+    "objectID": "03-Grid.html",
+    "href": "03-Grid.html",
+    "title": "Grid Creation",
+    "section": "",
+    "text": "This section creates a 10 km × 10 km grid for mapping SAR scores across Canada. The grid is aligned to the Albers equal-area projection used by NCC in their AOH range maps.\n\n\n\nlibrary(sf)\nlibrary(dplyr)\nlibrary(tidyverse)\nlibrary(rnaturalearth)\nlibrary(units)\nlibrary(readr)"
+  },
+  {
+    "objectID": "03-Grid.html#overview",
+    "href": "03-Grid.html#overview",
+    "title": "Grid Creation",
+    "section": "",
+    "text": "This section creates a 10 km × 10 km grid for mapping SAR scores across Canada. The grid is aligned to the Albers equal-area projection used by NCC in their AOH range maps.\n\n\n\nlibrary(sf)\nlibrary(dplyr)\nlibrary(tidyverse)\nlibrary(rnaturalearth)\nlibrary(units)\nlibrary(readr)"
+  },
+  {
+    "objectID": "03-Grid.html#create-grid",
+    "href": "03-Grid.html#create-grid",
+    "title": "Grid Creation",
+    "section": "Create Grid",
+    "text": "Create Grid\n\nLoad Map of Canada\n\n# Map of Canada from rnaturalearth for clipping grid to Canada extent\nCanada_map &lt;- ne_states(country = \"Canada\", returnclass = \"sf\") %&gt;%\n  st_make_valid() %&gt;%\n  summarize() %&gt;%\n  st_transform(crs = \"+proj=aea +lat_1=50 +lat_2=70 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs\") #Canada Albers\n\n\n\nCreate Grid Functions\n\n# Function to create a grid for an sf object (function adapted from Steffi LaZarte)\n#| eval: false\nmake_grid &lt;- function(sf, size) {\n  sf %&gt;%\n    sf::st_bbox()  %&gt;%\n    wk::as_rct()  %&gt;%\n    wk::grd(dx = size, dy = size)  %&gt;%\n    sf::st_as_sf()\n}\n\n# Function to filter grid based on overlap (function adapted from Steffi LaZarte)\ngrid_filter &lt;- function(grid, sf, size) {\n  sf::st_filter(grid, sf) %&gt;%\n    dplyr::mutate(id = 1:dplyr::n()) %&gt;%\n    split(.$id) %&gt;%\n    purrr::map(~ make_grid(.x, size))\n}\n\n\n\nCreate Grids\n\n# Set units to km2 (project size is 100km2)\nas_units(10^2, \"km2\")\n\n# Create 20 km x 20 km grid and then divide into 10 km x 10 km grid cells\ngrid_20 &lt;- Canada_map  %&gt;%                  \n  make_grid(size = 20 * 1000) %&gt;%  \n  mutate(grid_id = 1:n())   \n\ngrid_10 &lt;- grid_filter(grid_20, Canada_map, size = 10 * 1000)  %&gt;%  # 10km in meters\n  bind_rows() %&gt;% \n  mutate(grid_id = 1:n()) \n\n\n\nClip Grid to Canada\n\n# Clip 10 km grid to boundaries of Canada\ngrid_10 &lt;- st_intersection(grid_10, Canada_map)"
+  },
+  {
+    "objectID": "03-Grid.html#visualize-grid-new-brunswick-example",
+    "href": "03-Grid.html#visualize-grid-new-brunswick-example",
+    "title": "Grid Creation",
+    "section": "Visualize Grid: New Brunswick Example",
+    "text": "Visualize Grid: New Brunswick Example\nA zoomed-in plot of New Brunswick is included below to visualize the 10 x 10 km grid overlay.\n\nplot(NB)"
+  },
+  {
+    "objectID": "03-Grid.html#export-grid",
+    "href": "03-Grid.html#export-grid",
+    "title": "Grid Creation",
+    "section": "Export Grid",
+    "text": "Export Grid\nThe grid was saved in multiple formats:\n\nRDS file (.rds) for loading within R workflows.\nShapefile (.shp) for compatibility with GIS software.\n\n\nwrite_rds(grid_10, \"outputs/grid/grid_10km_Albers.rds\")\n\nst_write(\n  grid_10,\n  \"outputs/grid/grid_10km_Albers.shp\",\n  delete_layer = TRUE\n)"
+  },
+  {
+    "objectID": "03-Grid.html#outputs",
+    "href": "03-Grid.html#outputs",
+    "title": "Grid Creation",
+    "section": "Outputs",
+    "text": "Outputs\n\noutputs/grid/grid_10km_Albers.rds\noutputs/grid/grid_10km_Albers.shp"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html",
+    "href": "05-Mapping_SAR.html",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "",
+    "text": "This section generates static maps of SAR bioindicator scores across Canada on a 10 × 10 km (100 km²) grid.\n\nOriginal scores were computed per 100 km²; for these maps, they are rescaled to represent scores per 1 km².\nAll maps use log10-transformed scores to enhance contrast.\nLegends display original (non-log) values for readability.\nMaps are produced for all SAR combined and for each major taxonomic group.\n\nInputs\n\noutputs/output_grid_sf_score.rds: Spatial data with SAR scores\ndata/Master_list_SAR.csv: Taxonomic classification of SAR\n\n\n\n\nlibrary(terra)\nlibrary(sf)\nlibrary(exactextractr)\nlibrary(dplyr)\nlibrary(rnaturalearth)\nlibrary(ggplot2)"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#overview-static-maps",
+    "href": "05-Mapping_SAR.html#overview-static-maps",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "",
+    "text": "This section generates static maps of SAR bioindicator scores across Canada on a 10 × 10 km (100 km²) grid.\n\nOriginal scores were computed per 100 km²; for these maps, they are rescaled to represent scores per 1 km².\nAll maps use log10-transformed scores to enhance contrast.\nLegends display original (non-log) values for readability.\nMaps are produced for all SAR combined and for each major taxonomic group.\n\nInputs\n\noutputs/output_grid_sf_score.rds: Spatial data with SAR scores\ndata/Master_list_SAR.csv: Taxonomic classification of SAR\n\n\n\n\nlibrary(terra)\nlibrary(sf)\nlibrary(exactextractr)\nlibrary(dplyr)\nlibrary(rnaturalearth)\nlibrary(ggplot2)"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#prepare-and-clean-data",
+    "href": "05-Mapping_SAR.html#prepare-and-clean-data",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Prepare and Clean Data",
+    "text": "Prepare and Clean Data\n\nRead in File\n\n# Load in grid scores and master data\ncombined &lt;- readRDS(\"data/output_grid_sf_score.rds\")\nspecies_master &lt;- read.csv(\"data/Master_list_SAR.csv\")\n\n\n\nClean Data: Remove Eskimo Curlew\nRemove the Eskimo Curlew from analysis. It is retained in the dataset for archival purposes.\n\n# Optional to start - remove Eskimo Curlew\nspecies_to_remove &lt;- \"Eskimo_Curlew\"\n\n# Find matching columns\nvalue_col_to_remove &lt;- grep(paste0(\"^value_\", species_to_remove), names(combined), value = TRUE)\npresence_col_to_remove &lt;- grep(paste0(\"^presence_\", species_to_remove), names(combined), value = TRUE)\n\n# Subtract the value column from sum_values\ncombined$sum_values &lt;- combined$sum_values - combined[[value_col_to_remove]]\n\n# Remove the columns\ncombined &lt;- combined %&gt;% select(-all_of(c(value_col_to_remove, presence_col_to_remove)))"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#map-all-species-100-km²",
+    "href": "05-Mapping_SAR.html#map-all-species-100-km²",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Map: All Species (100 km²)",
+    "text": "Map: All Species (100 km²)\n\nPrepare Data and Log Scores\n\n# Load grid and start here if not removing Eskimo Curlew\n# Provincial boundaries and reproject to match grid\nprovinces &lt;- ne_states(country = \"Canada\", returnclass = \"sf\")\nprovinces &lt;- st_transform(provinces, st_crs(combined))\n\n# Log10 transform for plotting\ncombined$log_sum_values &lt;- log10(combined$sum_values)\n\n# Define legend breaks based on data range\nscore_breaks &lt;- c(1000, 10000, 100000, 1000000)\nrange_vals &lt;- range(combined$sum_values[combined$sum_values &gt; 0], na.rm = TRUE)\nscore_breaks &lt;- score_breaks[score_breaks &gt;= range_vals[1] & score_breaks &lt;= range_vals[2]]\nlog_breaks &lt;- log10(score_breaks)\n\n# Function to pad legend labels for alignment\npad_labels_right &lt;- function(labels, width = 7) {\n  sapply(labels, function(x) {\n    label_text &lt;- formatC(x, format = \"f\", big.mark = \",\", digits = 0)\n    n &lt;- width - nchar(label_text)\n    n &lt;- ifelse(n &lt; 0, 0, n)  # no negative repeats\n    paste0(strrep(\"\\u00A0\", n), label_text)\n  })\n}\n\n\n\nPlot at 100km²\n\n# Plot log-scored data with original score legend (100km²)\nggplot(data = combined) + \n  geom_sf(aes(fill = log_sum_values), color = NA) + \n  geom_sf(data = provinces, fill = NA, color = \"black\", size = 0.1) +\n  scale_fill_gradientn(\n    colours = c(\"#fff9db\", \"#fee485\", \"#fca944\", \"#ed4801\", \"#860a03\", \"#221c05\"),\n    breaks = log_breaks,\n    labels = pad_labels_right(format(score_breaks, big.mark = \",\", scientific = FALSE)),\n    na.value = \"grey\",\n    guide = guide_colorbar(\n      label.position = \"right\",\n      label.hjust = 0  \n    )\n  )+\n  theme_minimal() +\n  labs(\n    title = \"Bioindicator Scores (n=441)\",\n    fill = \"Score per 100 km²\"\n  ) +\n  theme(\n    legend.position = c(0.9, 0.7),\n    legend.title = element_text(size = 12),\n    legend.text = element_text(size = 10),\n  )"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#map-all-species-1-km²",
+    "href": "05-Mapping_SAR.html#map-all-species-1-km²",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Map: All Species (1 km²)",
+    "text": "Map: All Species (1 km²)\nScores scaled to 1 km².\n\n# Per 1km2\ncombined$sum_values_scaled &lt;- combined$sum_values / 100\ncombined$log_sum_values_scaled &lt;- log10(combined$sum_values_scaled)\n\n# Adjust breaks for scaled data\nscore_breaks_scaled &lt;- score_breaks / 100\n\n# Filter breaks within the scaled data range\nrange_vals_scaled &lt;- range(combined$sum_values_scaled[combined$sum_values_scaled &gt; 0], na.rm = TRUE)\nscore_breaks_scaled &lt;- score_breaks_scaled[score_breaks_scaled &gt;= range_vals_scaled[1] & score_breaks_scaled &lt;= range_vals_scaled[2]]\nlog_breaks_scaled &lt;- log10(score_breaks_scaled)\n\n# Plot 1 km² scores\nggplot(data = combined) + \n  geom_sf(aes(fill = log_sum_values_scaled), color = NA) + \n  geom_sf(data = provinces, fill = NA, color = \"black\", size = 0.1) +\n  scale_fill_gradientn(\n    colours = c(\"#fff9db\", \"#fee485\", \"#fca944\", \"#ed4801\", \"#860a03\", \"#221c05\"),\n    breaks = log_breaks_scaled,\n    labels = pad_labels_right(format(score_breaks_scaled, big.mark = \",\", scientific = FALSE)),\n    na.value = \"grey\",\n    guide = guide_colorbar(\n      label.position = \"right\",\n      label.hjust = 0\n    )\n  ) +\n  theme_minimal() +\n  labs(\n    title = \"Bioindicator Scores (n=441)\",\n    fill = \"Score per 1 km²\"\n  ) +\n  theme(\n    legend.position = c(0.9, 0.7),\n    legend.title = element_text(size = 12),\n    legend.text = element_text(size = 10),\n  )"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#maps-taxon-specific-1-km²",
+    "href": "05-Mapping_SAR.html#maps-taxon-specific-1-km²",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Maps: Taxon-Specific (1 km²)",
+    "text": "Maps: Taxon-Specific (1 km²)\nThe following section generates maps by taxonomic group. The breaks and legends are specific to each taxon.\nIndividual taxa include:\n\nBirds\nVascular Plants\nAmphibians\nReptiles\nMammals\nArthropods\nLichens\nMosses\nMolluscs\n\n\nBirds: Full Code and Map\n\n## Taxon Maps\n# Load grid\ncombined &lt;- readRDS(\"data/output_grid_sf_score.rds\")\n\n# Prepare column keys\nspecies_columns &lt;- grep(\"^presence_\", names(combined), value = TRUE)\ncolumn_key &lt;- gsub(\"^presence_\", \"\", species_columns)\n\n# Clean species names in master\nspecies_master &lt;- species_master %&gt;%\n  mutate(column_key = gsub(\"[-,./'() ]\", \"_\", Common_name))\n\n# Filter for birds in master list\nbird_keys &lt;- species_master %&gt;%\n  filter(Taxon == \"Birds\") %&gt;%\n  pull(column_key)\n\n# Corresponding value columns for birds\nbird_value_cols &lt;- paste0(\"value_\", bird_keys)\nbird_value_cols &lt;- bird_value_cols[bird_value_cols %in% names(combined)]\n\n# Remove Eskimo Curlew\nbird_value_cols &lt;- bird_value_cols[bird_value_cols != \"value_Eskimo_Curlew\"]\n\n# Create bird score (raw and log10-transformed)\nbird_grid &lt;- combined %&gt;%\n  mutate(bird_score = rowSums(across(all_of(bird_value_cols)), na.rm = TRUE) / 100) %&gt;%\n  mutate(\n    bird_score = ifelse(bird_score == 0, NA, bird_score),\n    log_bird_score = log10(bird_score)\n  )\n\n# Set custom breaks for the legend\nscore_breaks &lt;- c(10, 100, 1000)\nlog_breaks &lt;- log10(score_breaks)\n\n# Custom label padding\npad_labels_right &lt;- function(labels, width = 5) {\n  sapply(labels, function(x) {\n    label_text &lt;- formatC(x, format = \"f\", big.mark = \",\", digits = 0)\n    n &lt;- width - nchar(label_text)\n    n &lt;- ifelse(n &lt; 0, 0, n)\n    paste0(strrep(\"\\u00A0\", n), label_text)\n  })\n}\n\n# Province outline\nprovinces &lt;- ne_states(country = \"Canada\", returnclass = \"sf\") %&gt;%\n  st_transform(st_crs(combined))\n\n# Plot bird map with log scale\nggplot(data = bird_grid) +\n  geom_sf(aes(fill = log_bird_score), color = NA) +\n  geom_sf(data = provinces, fill = NA, color = \"black\", size = 0.1) +\n  scale_fill_gradientn(\n    colours = c(\"#fff9db\", \"#fee485\", \"#fca944\", \"#ed4801\", \"#860a03\", \"#221c05\"),\n    breaks = log_breaks,\n    labels = pad_labels_right(score_breaks),\n    na.value = \"grey\",\n    guide = guide_colorbar(\n      label.position = \"right\",\n      label.hjust = 0\n    )\n  ) +\n  theme_minimal() +\n  labs(\n    title = \"Bioindicator Scores: Birds (n=79)\",\n    fill = \"Score per 1 km²\"\n  ) +\n  theme(\n    legend.position = c(0.9, 0.7),\n    legend.title = element_text(size = 12),\n    legend.text = element_text(size = 10)\n  )\n\n\n\n\n\n\n\n\n\n\n\n\nOther Taxa: Maps\nFollowing the same workflow as the bird example, static maps were generated for all remaining taxa. Each map shows log₁₀-scaled bioindicator scores per 1km²."
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#outputs-static-maps",
+    "href": "05-Mapping_SAR.html#outputs-static-maps",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Outputs: Static Maps",
+    "text": "Outputs: Static Maps\nThe following 11 static maps are generated:\n\nStatic_Map_Amphibians_1km_Log.pdf\nStatic_Map_Arthropods_1km_Log.pdf\nStatic_Map_Birds_1km_Log.pdf\nStatic_Map_Lichens_1km_Log.pdf\nStatic_Map_Mammals_1km_Log.pdf\nStatic_Map_Molluscs_1km_Log.pdf\nStatic_Map_Mosses_1km_Log.pdf\nStatic_Map_Plants_1km_Log.pdf\nStatic_Map_Reptiles_1km_Log.pdf\nStatic_Map_SAR_1km2.pdf\nStatic_Map_SAR_100km2.pdf"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#interactive-maps-overview",
+    "href": "05-Mapping_SAR.html#interactive-maps-overview",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Interactive Maps Overview",
+    "text": "Interactive Maps Overview\nThis section outlines the creation of interactive maps displaying the distribution of SAR bioindicator scores across Canada. The grid resolution is 10 km x 10 km (100 km²). All scores are calculated over 100 km² grid cells and have been scaled to 1 km².\nNote: The interactive Leaflet maps are too large to render directly in this RMarkdown document. They are available for download on Dropbox.\n\nInput Files\n\noutputs/output_grid_sf_score.rds: Spatial data with SAR scores\ndata/Master_list_SAR.csv: Taxonomic classification of SAR"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#interactive-map-all-species",
+    "href": "05-Mapping_SAR.html#interactive-map-all-species",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Interactive Map: All Species",
+    "text": "Interactive Map: All Species\n\nLoad Libraries\n\nlibrary(leaflet)\n\nWarning: package 'leaflet' was built under R version 4.5.2\n\nlibrary(dplyr)\nlibrary(sf)\nlibrary(htmlwidgets)\n\nWarning: package 'htmlwidgets' was built under R version 4.5.2\n\n\n\n\nRead in Files\n\n# Load in grid scores and master data\ncombined &lt;- readRDS(\"data/output_grid_sf_score.rds\")\nspecies_master &lt;- read.csv(\"data/Master_list_SAR.csv\")\n\n\n\nData Preparation\n\n# Reproject to lat/long for leaflet\ncombined &lt;- st_transform(combined, crs = 4326)\n\n# Get list of all species we have data for\nspecies_columns &lt;- grep(\"^presence_\", names(combined), value = TRUE)\n\n## When presence/absence was extracted, all spaces and characters were replaced with '_'\n## To display names without underscores we have to create a dataframe that has the names we want\n## displayed along with what the names currently are (i.e. Piping Plover from Piping_Plover)\n\n# Create a list with these species (remove presence_ from the front)\ncolumn_key &lt;- gsub(\"^presence_\", \"\", species_columns)\n\n# Replace all spaces to mimic current naming convention\nspecies_master &lt;- species_master %&gt;%\n  mutate(column_key = gsub(\"[-,./'() ]\", \"_\", Common_name))\n\nspecies_master_filtered &lt;- species_master %&gt;%\n  filter(column_key %in% column_key)\n\nlookup_table &lt;- setNames(\n  paste0(\n    species_master_filtered$Common_name,\n    \" (&lt;b&gt;\", species_master_filtered$SAR_status, \"&lt;/b&gt;)\"\n  ),\n  species_master_filtered$column_key\n)\n\n# Convert all presence_ columns to logical (TRUE/FALSE)\ncombined &lt;- combined %&gt;%\n  mutate(across(all_of(species_columns), ~ as.logical(.)))\n\n# Initialize map\nleaflet_map &lt;- leaflet() %&gt;% \n  addProviderTiles(providers$CartoDB.Positron)\n\n# Add \"All Species\" layer\ngrid_all_species &lt;- combined %&gt;% \n  mutate(score = rowSums(across(starts_with(\"value_\")), na.rm = TRUE) / 100) %&gt;% \n  filter(score &gt; 0)  # Drop empty cells\n\n# Create popup info for All Species layer\ngrid_all_species &lt;- grid_all_species %&gt;%\n  rowwise() %&gt;%\n  mutate(popup_info = {\n    species_names &lt;- c()\n    for (species_column in species_columns) {\n      raw_name &lt;- gsub(\"^presence_\", \"\", species_column)\n      if (!is.null(get(species_column)) && get(species_column) && raw_name %in% names(lookup_table)) {\n        species_names &lt;- c(species_names, lookup_table[raw_name])\n      }\n    }\n    species_html &lt;- if (length(species_names) == 0) {\n      \"No species present\"\n    } else {\n      paste(species_names, collapse = \"&lt;br&gt;\")\n    }\n    paste0(\n      \"&lt;b&gt;All Species Score (per km²):&lt;/b&gt; \", round(score, 2), \"&lt;br&gt;&lt;br&gt;\",\n      \"&lt;b&gt;Species Present:&lt;/b&gt;&lt;br&gt;\", species_html\n    )\n  }) %&gt;%\n  ungroup()\n\n# Color palette for All Species\npal_all_species &lt;- colorNumeric(\n  palette = c(\"#fee485\", \"#ed4801\", \"#860a03\", \"#221c05\"),\n  domain = range(grid_all_species$score, na.rm = TRUE),\n  na.color = \"grey\"\n)\n\n\n\nCreate Leaflet\n\n# Add the All Species layer\nleaflet_map &lt;- leaflet_map %&gt;% \n  addPolygons(\n    data = grid_all_species,\n    fillColor = ~pal_all_species(score),\n    weight = 0.5,\n    color = \"lightgrey\",\n    fillOpacity = 0.7,\n    popup = ~popup_info,\n    group = \"All Species\"\n  )\n\n\n\nSave Leaflet as .html\n\n# Save file\nfile_path &lt;- \"outputs/interactive_map_all.html\"\nsaveWidget(leaflet_map, file = file_path, selfcontained = TRUE)"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#interactive-map-taxon-toggles",
+    "href": "05-Mapping_SAR.html#interactive-map-taxon-toggles",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Interactive Map: Taxon Toggles",
+    "text": "Interactive Map: Taxon Toggles\nThis leaflet has toggles for the varying taxa that can be turned off and on.\nImportant Note: When toggling on layers, the top layer takes priority. Toggled on maps can not be combined, it is purely for comparison sake.\n\nDefine Taxa of Interest\nTo improve performance, only the most common taxa of interest are shown on these maps. Including all taxa would make the map too slow and difficult to use.\n\ntaxon_types &lt;- c(\"Mammals\", \"Birds\", \"Reptiles\", \"Amphibians\", \"Vascular Plants\")\n\n\n\nLoop Through Taxa\n\nfor (taxon in taxon_types) {\n  \n  taxon_keys &lt;- species_master %&gt;%\n    filter(Taxon == taxon) %&gt;%\n    pull(column_key)\n  \n  taxon_presence_cols &lt;- paste0(\"presence_\", taxon_keys)\n  taxon_value_cols &lt;- paste0(\"value_\", taxon_keys)\n  \n  # Score for this taxon\n  grid_taxon &lt;- combined %&gt;%\n    mutate(score = rowSums(across(all_of(taxon_value_cols)), na.rm = TRUE) / 100) %&gt;%\n    filter(score &gt; 0)  \n  \n  # Popups\n  grid_taxon &lt;- grid_taxon %&gt;%\n    rowwise() %&gt;%\n    mutate(\n      popup_info = {\n        species_names &lt;- c()\n        for (species_column in taxon_presence_cols) {\n          raw_name &lt;- gsub(\"^presence_\", \"\", species_column)\n          if (!is.null(get(species_column)) && get(species_column) && raw_name %in% names(lookup_table)) {\n            species_names &lt;- c(species_names, lookup_table[raw_name])\n          }\n        }\n        species_html &lt;- if (length(species_names) == 0) {\n          \"No species present\"\n        } else {\n          paste(species_names, collapse = \"&lt;br&gt;\")\n        }\n        paste0(\n          \"&lt;b&gt;\", taxon, \" Score (per km²):&lt;/b&gt; \", round(score, 2), \"&lt;br&gt;&lt;br&gt;\",\n          \"&lt;b&gt;Species Present:&lt;/b&gt;&lt;br&gt;\", species_html\n        )\n      }\n    ) %&gt;%\n    ungroup()\n  \n  \n  # Color palette for this taxon\n  pal_taxon &lt;- colorNumeric(\n    palette = c(\"#fee485\", \"#ed4801\", \"#860a03\", \"#221c05\"),\n    domain = range(grid_taxon$score, na.rm = TRUE),\n    na.color = \"grey\"\n  )\n  \n  # Add to map\n leaflet_map &lt;- leaflet_map %&gt;%\n    addPolygons(\n      data = grid_taxon,\n      fillColor = ~pal_taxon(score),\n      weight = 0.5,\n      color = \"lightgrey\",\n      fillOpacity = 0.7,\n      popup = ~popup_info,\n      group = taxon\n    )\n}\n\n\n\nLayer Options\n\n# Turn all layers off initially\nleaflet_map &lt;- leaflet_map %&gt;%\n  hideGroup(\"All Species\") %&gt;%\n  hideGroup(taxon_types) %&gt;%\n  addLayersControl(\n    overlayGroups = c(\"All Species\", taxon_types),\n    options = layersControlOptions(collapsed = FALSE)\n  )\n\n\n\nSave\n\nsaveWidget(leaflet_map, file = \"outputs/interactive_map_all_with_taxa.html\", selfcontained = TRUE)"
+  },
+  {
+    "objectID": "05-Mapping_SAR.html#outputs",
+    "href": "05-Mapping_SAR.html#outputs",
+    "title": "Static and Interactive Mapping of SAR",
+    "section": "Outputs",
+    "text": "Outputs\nThe following interactive maps are generated:\n\ninteractive_map_all_with_taxa.html: Contains toggleable layers for All Species and each key taxon (Mammals, Birds, Reptiles, Amphibians, Vascular Plants). This is a larger file and may take longer to render.\ninteractive_map_all.html: Displays the All Species map with clickable popups showing the score and species present. This is a lighter map suitable for quick loading."
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html",
+    "href": "07-Loop_Ecotype.html",
+    "title": "Ecosystem Extraction Loop",
+    "section": "",
+    "text": "This document outlines the workflow to generate ecozone- and ecotype-specific raster layers representing ecotype scores across Canada."
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#overview-ecozone-loop",
+    "href": "07-Loop_Ecotype.html#overview-ecozone-loop",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Overview: Ecozone Loop",
+    "text": "Overview: Ecozone Loop\nThe ecozone loop produces ecozone-specific raster layers where each 30m ecotype cell is reclassified to its unique score for that ecozone.\nThe workflow involves:\n\nMasking the NALCMS 30m land cover raster to each ecozone boundary.\n\nReclassifying each ecotype cell to its ecozone-specific score using the provided scores table.\n\nInputs\n\ndata/Ecozones/ecozones.shp: Ecozone shapefile\ndata/can_land_cover_2020v2_30m_tif/CAN_NALCMS_landcover_2020v2_30m/data/CAN_NALCMS_landcover_2020v2_30m.tif: Ecotype raster from NALCMS\noutputs/Ecotype_Scores_Scaled_Final.csv: Ecotype scores (metadata)\n\n\nLoad Libraries\n\nlibrary(terra)\nlibrary(sf)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#ecozone-rasters",
+    "href": "07-Loop_Ecotype.html#ecozone-rasters",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Ecozone Rasters",
+    "text": "Ecozone Rasters\n\nRead Files and Prepare Data\n\n# Load ecozones shapefile and ecotypes raster\necozones &lt;- st_read(\"data/Ecozones/ecozones.shp\")\necotypes &lt;- rast(\"data/can_land_cover_2020v2_30m_tif/CAN_NALCMS_landcover_2020v2_30m/data/CAN_NALCMS_landcover_2020v2_30m.tif\")\nscores &lt;- read.csv(\"outputs/Ecotype_Scores_Scaled_Final.csv\")\n\n\n# Reproject ecozones to match raster CRS\necozones &lt;- st_transform(ecozones, crs(ecotypes))\n\n# Create habitat lookup table\nhabitat_lookup &lt;- data.frame(\n  value = 1:19,\n  name = c(\n    \"Temperate or sub-polar needleleaf forest\", \"Sub-polar taiga needleleaf forest\",\n    \"Tropical or sub-tropical broadleaf evergreen forest\", \"Tropical or sub-tropical broadleaf deciduous forest\",\n    \"Temperate or sub-polar broadleaf deciduous forest\", \"Mixed Forest\",\n    \"Tropical or sub-tropical shrubland\", \"Temperate or sub-polar shrubland\",\n    \"Tropical or sub-tropical grassland\", \"Temperate or sub-polar grassland\",\n    \"Sub-polar or polar shrubland-lichen-moss\", \"Sub-polar or polar grassland-lichen-moss\",\n    \"Sub-polar or polar barren-lichen-moss\", \"Wetland\", \"Cropland\", \"Barren lands\",\n    \"Urban\", \"Water\", \"Snow and Ice\"\n  )\n)\n\n# Get all unique ecozone names\nall_zones &lt;- unique(ecozones$ZONE_NAME)\n\n\n# Set the output directory\noutput_dir &lt;- \"outputs/ecozone_rasters\"\ndir.create(output_dir, showWarnings = FALSE)\n\n\n\nEcozone Masking Loop\nThis loop creates an independent raster for each ecozone, where each ecotype is reclassified to its respective score for that ecozone.\n\n# Ecozone Loop\nfor (zone in all_zones) {\n  cat(\"Processing:\", zone, \"\\n\")\n  try({\n    # Filter to current ecozone polygon\n    zone_poly &lt;- ecozones %&gt;%\n      filter(ZONE_NAME == zone) %&gt;%\n      st_make_valid()\n    \n    if (nrow(zone_poly) == 0 || st_is_empty(zone_poly)) {\n      cat(\"No geometry found for\", zone, \"- skipping.\\n\\n\")\n      next\n    }\n    \n    zone_vect &lt;- vect(zone_poly)\n    \n    # Crop and mask raster\n    eco_crop &lt;- terra::crop(ecotypes, zone_vect)\n    eco_masked &lt;- terra::mask(eco_crop, zone_vect)\n    \n    # Remove \"Snow and Ice\" (value 19)\n    eco_masked[eco_masked == 19] &lt;- NA\n    \n    # Filter scores for current ecozone\n    zone_scores &lt;- scores %&gt;% filter(Ecozone == zone)\n    \n    # Merge with the habitat lookup\n    score_lookup &lt;- merge(\n      habitat_lookup, zone_scores,\n      by.x = \"name\", by.y = \"Ecotype\", all.x = TRUE\n    )\n    score_lookup_clean &lt;- score_lookup[!is.na(score_lookup$Score), ]\n    \n    # If no valid scores, skip\n    if (nrow(score_lookup_clean) == 0) {\n      cat(\"No matching ecotype scores for\", zone, \"- skipping.\\n\\n\")\n      next\n    }\n    \n    # Reclassify to corresponding scores\n    reclass_matrix &lt;- as.matrix(score_lookup_clean[, c(\"value\", \"Score\")])\n    score_raster &lt;- classify(eco_masked, rcl = reclass_matrix, others = NA)\n    \n    # Save as .rds\n    rds_path &lt;- file.path(output_dir, paste0(gsub(\" \", \"_\", zone), \"_score_raster.rds\"))\n    saveRDS(score_raster, rds_path)\n    \n    # Save as .tif (GeoTIFF)\n    tif_path &lt;- file.path(output_dir, paste0(gsub(\" \", \"_\", zone), \"_score_raster.tif\"))\n    writeRaster(score_raster, filename = tif_path, overwrite = TRUE)\n    \n    cat(\"Finished:\", zone, \"\\n\\n\")\n  }, silent = FALSE)\n}"
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#outputs",
+    "href": "07-Loop_Ecotype.html#outputs",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Outputs",
+    "text": "Outputs\nThis loop generates both an .rds file (for efficient R usage) and a .tif GeoTIFF file (for GIS applications) for each ecozone, resulting in 30 raster outputs. Files are stored in outputs/ecozone_rasters\n\nArctic_Cordillera_score_raster.rds and Arctic_Cordillera_score_raster.tif\n\nAtlantic_Maritime_score_raster.rds and Atlantic_Maritime_score_raster.tif\n\nBoreal_Cordillera_score_raster.rds and Boreal_Cordillera_score_raster.tif\n\nBoreal_Plain_score_raster.rds and Boreal_Plain_score_raster.tif\n\nBoreal_Shield_score_raster.rds and Boreal_Shield_score_raster.tif\n\nHudson_Plain_score_raster.rds and Hudson_Plain_score_raster.tif\n\nMixedwood_Plain_score_raster.rds and Mixedwood_Plain_score_raster.tif\n\nMontane_Cordillera_score_raster.rds and Montane_Cordillera_score_raster.tif\n\nNorthern_Arctic_score_raster.rds and Northern_Arctic_score_raster.tif\n\nPacific_Maritime_score_raster.rds and Pacific_Maritime_score_raster.tif\n\nPrairie_score_raster.rds and Prairie_score_raster.tif\n\nSouthern_Arctic_score_raster.rds and Southern_Arctic_score_raster.tif\n\nTaiga_Cordillera_score_raster.rds and Taiga_Cordillera_score_raster.tif\n\nTaiga_Plain_score_raster.rds and Taiga_Plain_score_raster.tif\n\nTaiga_Shield_score_raster.rds and Taiga_Shield_score_raster.tif"
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#overview-ecotype-loop",
+    "href": "07-Loop_Ecotype.html#overview-ecotype-loop",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Overview: Ecotype Loop",
+    "text": "Overview: Ecotype Loop\nThe Ecotype Loop extracts key ecotypes across Canada and outputs separate rasters for each\nThe workflow includes:\n\nIdentify target ecotype scores from the CSV table.\nReclassify all non-target scores to NA.\n\nInputs\n\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_FIRST_15.tif: mosaicked national ecotype raster\noutputs/Ecotype_Scores_Scaled_Final.csv: ecotype metadata\n\n\nLoad Libraries\n\nlibrary(terra)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#ecotype-rasters",
+    "href": "07-Loop_Ecotype.html#ecotype-rasters",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Ecotype Rasters",
+    "text": "Ecotype Rasters\n\nData Preparation and File Loading\n\n# Load raster and scores table\nr &lt;- rast(\"outputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_FIRST_15.tif\")\nscores &lt;- read.csv(\"outputs/Ecotype_Scores_Scaled_Final.csv\")\n\n# Output folder\nout_dir &lt;- \"outputs/Reclassified_By_Ecotype/\"\n\n# List of ecotypes to process\necotypes &lt;- c(\n  \"Barren lands\",\n  \"Mixed Forest\",\n  \"Temperate or sub-polar grassland\",\n  \"Temperate or sub-polar broadleaf deciduous forest\",\n  \"Temperate or sub-polar needleleaf forest\",\n  \"Water\",\n  \"Wetland\"\n)\n\n# Tolerance for matching scores (ensures scores match if scores were rounded)\ntolerance &lt;- 0.001\n\n\n\nLoop Through Ecotypes\n\n# Loop through ecotypes\nfor (eco in ecotypes) {\n\n  # Filter and extract target scores\n  target_scores &lt;- unique(scores %&gt;% filter(Ecotype == eco) %&gt;% pull(Score))\n  \n  # Skip if no matching scores\n  if (length(target_scores) == 0) {\n    warning(paste(\"No scores found for:\", eco))\n    next\n  }\n  \n  # Build reclass matrix\n  reclass_matrix &lt;- do.call(rbind, lapply(target_scores, function(x) {\n    c(x - tolerance, x + tolerance, x)\n  }))\n  \n  # Reclassify\n  r_reclassed &lt;- classify(r, rcl = reclass_matrix, others = NA)\n  \n  # Clean ecotype name for file output\n  clean_name &lt;- gsub(\"[^a-zA-Z0-9]\", \"_\", eco)\n  \n  # Save as .tif\n  writeRaster(\n    r_reclassed,\n    filename = file.path(out_dir, paste0(\"Reclassified_\", clean_name, \".tif\")),\n    overwrite = TRUE,\n    wopt = list(datatype = \"FLT4S\", gdal = c(\"COMPRESS=LZW\", \"TILED=YES\"))\n  )\n  \n  # Save as .rds\n  saveRDS(r_reclassed, file = file.path(out_dir, paste0(\"Reclassified_\", clean_name, \".rds\")))\n}"
+  },
+  {
+    "objectID": "07-Loop_Ecotype.html#outputs-1",
+    "href": "07-Loop_Ecotype.html#outputs-1",
+    "title": "Ecosystem Extraction Loop",
+    "section": "Outputs",
+    "text": "Outputs\nThe Ecotype Loop generates two files per target ecotype:\n\nReclassified_Barren_lands.rds and Reclassified_Barren_lands.tif\nReclassified_Mixed_Forest.rds and Reclassified_Mixed_Forest.tif\nReclassified_Temperate_or_sub_polar_grassland.rds and Reclassified_Temperate_or_sub_polar_grassland.tif\nReclassified_Temperate_or_sub_polar_broadleaf_deciduous_forest.rds and Reclassified_Temperate_or_sub_polar_broadleaf_deciduous_forest.tif\nReclassified_Temperate_or_sub_polar_needleleaf_forest.rds and Reclassified_Temperate_or_sub_polar_needleleaf_forest.tif\nReclassified_Water.rds and Reclassified_Water.tif\nReclassified_Wetland.rds and Reclassified_Wetland.tif"
+  },
+  {
+    "objectID": "09-Ecotype_Mapping.html",
+    "href": "09-Ecotype_Mapping.html",
+    "title": "Static Mapping of Ecosystems",
+    "section": "",
+    "text": "This section visualizes ecotype scores using log-transformed rasters. Two types of ecotype maps are produced:\n\nNational Map: Canada with all ecotypes and ecozones\nEcotype Maps: Individual maps for each ecotype\n\nInputs\n\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.rds: Log-transformed raster mosaic of all ecotypes.\ndata/Ecozones/ecozones.shp: Ecozone shapefile (vector outlines).\noutputs/Reclassified by Ecotype/Reclassified_By_Ecotype/: Individual ecotype rasters (log-transformed).\noutputs/Ecotype_Scores_Scaled_Final.csv: Reference scores used for generating legend labels.\n\n\n\n\nlibrary(terra)\nlibrary(fields)\nlibrary(rnaturalearth)\nlibrary(sf)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "09-Ecotype_Mapping.html#overview",
+    "href": "09-Ecotype_Mapping.html#overview",
+    "title": "Static Mapping of Ecosystems",
+    "section": "",
+    "text": "This section visualizes ecotype scores using log-transformed rasters. Two types of ecotype maps are produced:\n\nNational Map: Canada with all ecotypes and ecozones\nEcotype Maps: Individual maps for each ecotype\n\nInputs\n\noutputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.rds: Log-transformed raster mosaic of all ecotypes.\ndata/Ecozones/ecozones.shp: Ecozone shapefile (vector outlines).\noutputs/Reclassified by Ecotype/Reclassified_By_Ecotype/: Individual ecotype rasters (log-transformed).\noutputs/Ecotype_Scores_Scaled_Final.csv: Reference scores used for generating legend labels.\n\n\n\n\nlibrary(terra)\nlibrary(fields)\nlibrary(rnaturalearth)\nlibrary(sf)\nlibrary(dplyr)"
+  },
+  {
+    "objectID": "09-Ecotype_Mapping.html#national-ecotype-map",
+    "href": "09-Ecotype_Mapping.html#national-ecotype-map",
+    "title": "Static Mapping of Ecosystems",
+    "section": "National Ecotype Map",
+    "text": "National Ecotype Map\nThe following map shows log-transformed ecotype scores across Canada, scaled to a 1km² project area.\n\nRaster colors represent log₁₀ scores to increase contrast between scores.\nLegend labels are displayed in the original score scale for better readability.\n\n\nBase Plot\n\n# Load raster\nlog_raster &lt;- readRDS(\"outputs/ecozone_rasters/mosaic/Canada_Ecozone_Score_Mosaic_LOG10.rds\")\n\n# Get log min and max\nlog_range &lt;- minmax(log_raster)\nlog_min &lt;- log_range[\"min\", 1]\nlog_max &lt;- log_range[\"max\", 1]\n\n# Define custom color palette\nmy_colors &lt;- c(\"#fff9db\", \"#fee485\", \"#fca944\", \"#ed4801\", \"#860a03\", \"#221c05\")\ncustom_palette &lt;- colorRampPalette(my_colors)(100)\n\n# Set margins and plot\npar(oma = c(0, 0, 0, 4))\nplot(log_raster, col = custom_palette, legend = FALSE, main = \"Ecotype Scores Canada\")\n\n# Set breaks for legend\nlabel_ticks_orig &lt;- c(5, 50, 500, 5000, 50000)\nlabel_ticks_log &lt;- log10(label_ticks_orig)\n\n# Add legend with original scores \nimage.plot(legend.only = TRUE,\n           zlim = c(log_min, log_max),\n           col = custom_palette,\n           legend.width = 1.5,\n           legend.shrink = 0.8,\n           legend.mar =1,  \n           axis.args = list(at = label_ticks_log,\n                            labels = format(label_ticks_orig, big.mark = \",\"),\n                            cex.axis = 0.9,\n                            las = 1),\n           legend.args = list(text = \"Score\",\n                              side = 3,    \n                              font = 2,  \n                              line = 1,  \n                              adj = 0.1))\n\n\n\n\n\n\n\n\n\n\n\n\nAdd Canada or Ecozone Outline\nNote: When using add = TRUE, layers are drawn on top of an existing plot. If you want to display just one overlay (e.g., the Canada outline) by itself, you must re-plot the base raster first, since add = TRUE does not create a new plot.\n\n# Add outline of Canada\ncanada &lt;- ne_states(country = \"Canada\", returnclass = \"sf\")\ncanada_transformed &lt;- st_transform(canada, crs(log_raster))\nplot(log_raster, col = custom_palette, legend = FALSE, main = \"Ecotype Scores Canada\")\nplot(st_geometry(canada_transformed), add = TRUE, border = \"grey30\", lwd = 1)\n\n# Add legend with original scores rather than log scores\nimage.plot(legend.only = TRUE,\n           zlim = c(log_min, log_max),\n           col = custom_palette,\n           legend.width = 1.5,\n           legend.shrink = 0.8,\n           legend.mar =4,  \n           axis.args = list(at = label_ticks_log,\n                            labels = format(label_ticks_orig, big.mark = \",\"),\n                            cex.axis = 0.9,\n                            las = 1),\n           legend.args = list(text = \"Score\",\n                              side = 3,    \n                              font = 2,  \n                              line = 1,  \n                              adj = 0.1))\n\n# Add ecozones outlines\necozones &lt;- st_read(\"data/Ecozones/ecozones.shp\", quiet = TRUE)\necozones &lt;- st_transform(ecozones, crs(log_raster))\nplot(log_raster, col = custom_palette, legend = FALSE, main = \"Ecotype Scores Canada\")\nplot(ecozones$geometry, add = TRUE, border = \"grey30\", lwd = 1)\n# Add legend with original scores rather than log scores\nimage.plot(legend.only = TRUE,\n           zlim = c(log_min, log_max),\n           col = custom_palette,\n           legend.width = 1.5,\n           legend.shrink = 0.8,\n           legend.mar =4,  \n           axis.args = list(at = label_ticks_log,\n                            labels = format(label_ticks_orig, big.mark = \",\"),\n                            cex.axis = 0.9,\n                            las = 1),\n           legend.args = list(text = \"Score\",\n                              side = 3,    \n                              font = 2,  \n                              line = 1,  \n                              adj = 0.1))"
+  },
+  {
+    "objectID": "09-Ecotype_Mapping.html#ecotype-mapping-individual-ecotypes",
+    "href": "09-Ecotype_Mapping.html#ecotype-mapping-individual-ecotypes",
+    "title": "Static Mapping of Ecosystems",
+    "section": "Ecotype Mapping: Individual Ecotypes",
+    "text": "Ecotype Mapping: Individual Ecotypes\nThe code below generates seven individual ecotype maps. While not all ecotypes are shown, the workflow can be easily reproduced for any other ecotype as needed.\nEcotypes included in this example:\n\nBarren Lands\nTemperate or Sub-polar Grasslands\nTemperate of Sub-polar Needleleaf Forest\nMixed Forest\nTemperate of Sub-polar Broadleaf Deciduous Forest\nWater\nWetland\n\n\nFunction for Pretty Breaks\n\n# Create function for nice breaks on legend\ngenerate_pretty_log_breaks &lt;- function(min_val, max_val, n = 5) {\n  log_min &lt;- log10(min_val)\n  log_max &lt;- log10(max_val)\n  \n  log_breaks &lt;- seq(log_min, log_max, length.out = n)\n  \n  # Convert back to original scale\n  raw_breaks &lt;- 10^log_breaks\n  \n  # Round the breaks to \"nice\" numbers\n  rounded_breaks &lt;- sapply(raw_breaks, function(x) {\n    if (x &lt; 100) {\n      round(x, -1) \n    } else if (x &lt; 1000) {\n      round(x, -2)  \n    } else if (x &lt; 10000) {\n      round(x, -2)  \n    } else {\n      round(x, -3) \n    }\n  })\n  \n    rounded_breaks &lt;- sort(unique(rounded_breaks))\n  \n  return(rounded_breaks)\n}\n\n\n\nSample Code: Barren Lands\n\n# Load raster\necotype &lt;- terra::rast(\"outputs/Reclassified by Ecotype/Reclassified_By_Ecotype/Reclassified_Barren_Lands_log.tif\")\n\n# Load Canada outline\ncanada &lt;- ne_states(country = \"Canada\", returnclass = \"sf\")\ncanada_transformed &lt;- st_transform(canada, crs(ecotype))\n\n# Load ecozone outline\necozones &lt;- st_read(\"data/Ecozones/ecozones.shp\", quiet = TRUE)\necozones &lt;- st_transform(ecozones, crs(ecotype))\n\n# Find log min and max\nlog_range &lt;- minmax(ecotype)\nlog_min &lt;- log_range[\"min\", 1]\nlog_max &lt;- log_range[\"max\", 1]\n\n# Define color palette\nmy_colors &lt;- c(\"#fee485\", \"#ed4801\", \"#860a03\", \"#221c05\")\ncustom_palette &lt;- colorRampPalette(my_colors)(100)\n\n# Plot\npar(mar = c(4, 2, 4, 6)) # Margins\nplot(st_geometry(ecozones), col = NA, border = NA, main = \"Barren Lands\",  \n     xlab = NA, ylab = NA, axes = TRUE) # Base plot\nplot(st_geometry(canada_transformed), col = \"gray97\", border = NA, add = TRUE) # Base for NA values\nplot(ecotype, col = custom_palette, legend = FALSE, main = \"Barren Lands\", add = TRUE) #Ecotype plot\nplot(st_geometry(canada_transformed), add = TRUE, border = \"grey30\", lwd = 0.2)\nplot(ecozones$geometry, add = TRUE, border = \"grey30\", lwd = 0.75)\n\n# Create legend based on score table\nscores_df &lt;- read.csv(\"outputs/Ecotype_Scores_Scaled_Final.csv\")\n\nfiltered_scores &lt;- scores_df %&gt;%\n  filter(Ecotype == \"Barren lands\")\n\nmin_score &lt;- min(filtered_scores$Score, na.rm = TRUE)\nmax_score &lt;- max(filtered_scores$Score, na.rm = TRUE)\n\nlabel_ticks_orig &lt;- generate_pretty_log_breaks(min_score, max_score, 5)\nlabel_ticks_log &lt;- log10(label_ticks_orig + 1)\n\n# Add legend with original scores rather than log scores\nimage.plot(legend.only = TRUE,\n           zlim = c(log_min, log_max),\n           col = custom_palette,\n           legend.width = 1.5,\n           legend.shrink = 0.8,\n           legend.mar = 4.5,  \n           axis.args = list(at = label_ticks_log,\n                            labels = format(label_ticks_orig, big.mark = \",\"),\n                            cex.axis = 0.9,\n                            las = 1),\n           legend.args = list(text = \"Score\",\n                              side = 3,    \n                              font = 2,  \n                              line = 1,  \n                              adj = 0.1))\n\n\n\n\n\nOther Ecotypes: Maps\nThe same workflow was applied to produce static maps for the other six ecotypes:\n\nTemperate or Sub-polar Grasslands\nTemperate or Sub-polar Needleleaf Forest\nMixed Forest\nTemperate or Sub-polar Broadleaf Deciduous Forest\nWater\nWetland\n\nEach map uses:\n\nLog₁₀-scaled raster for visual clarity\nEcozone and Canada outline\nLegends in original score scale\n\nRaw code for each ecozone is available on GitHub."
+  },
+  {
+    "objectID": "09-Ecotype_Mapping.html#outputs",
+    "href": "09-Ecotype_Mapping.html#outputs",
+    "title": "Static Mapping of Ecosystems",
+    "section": "Outputs",
+    "text": "Outputs\n\nEcotype_scores.pdf: no outlines\nEcotype_scores_canada_ecozone_outline.pdf: both Canada and ecozone outlines\nEcotype_scores_ecozone_outline.pdf: ecozone outline\nEcotype_scores_canada.pdf: Canada outline\nWater.pdf\nTemperate or Sub-polar Broadleaf Deciduous Forest.pdf\nTemperate of Sub-polar Needleleaf Forest.pdf\nWetland.pdf\nMixed Forest.pdf\nBarren Lands.pdf\nTemperate or Sub-polar Grasslands.pdf"
+  },
+  {
+    "objectID": "SAR_Setup.html",
+    "href": "SAR_Setup.html",
+    "title": "SAR Set-up",
+    "section": "",
+    "text": "An initial dataset was downloaded from the Species at Risk Public Registry (SAR Registry), filtered to retain species listed as Endangered, Threatened, or Special Concern. This filtering resulted in a list of 838 species.\nThis list was then cross-referenced with the species range maps from NCC, identifying 441 species with corresponding range maps that were listed in the SAR registry.\nPublished EOO data were gathered where available. For 17 species without published EOOs, their range size was used instead."
+  },
+  {
+    "objectID": "SAR_Setup.html#data-preparation",
+    "href": "SAR_Setup.html#data-preparation",
+    "title": "SAR Set-up",
+    "section": "",
+    "text": "An initial dataset was downloaded from the Species at Risk Public Registry (SAR Registry), filtered to retain species listed as Endangered, Threatened, or Special Concern. This filtering resulted in a list of 838 species.\nThis list was then cross-referenced with the species range maps from NCC, identifying 441 species with corresponding range maps that were listed in the SAR registry.\nPublished EOO data were gathered where available. For 17 species without published EOOs, their range size was used instead."
+  }
+]
