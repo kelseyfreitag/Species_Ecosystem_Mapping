@@ -2,14 +2,14 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "SAR and Ecotype Project",
+    "title": "SAR and Ecosystem Project",
     "section": "",
     "text": "Welcome to the SAR and Ecosystem Mapping Project. This website documents the methods and results of the project. Use the navigation panel on the top to explore the following sections:\n\n\n\nSAR Setup: Description of data preparation for analyses.\n\nGrid Creation: Creating 10 km × 10 km grid cells across Canada.\n\n\n\n\n\nArea Calculations for Missing EOOs: Estimating range areas where published EOOs are unavailable.\n\nSAR Score Calculations: Binning EOOs and calculating SAR scores.\n\nSAR Extraction Loop: Extracting presence/absence data and applying species scores to each grid cell.\n\nStatic and Interactive Mapping of SAR: Mapping SAR scores across Canada and for individual taxonomic groups.\n\n\n\n\n\nEcosystem Score Calculations: Calculating ecotype scores across ecozones.\n\nEcosystem Extraction Loop: Masking the ecotype raster to each ecozone and reclassifying ecotypes to ecozone-specific scores.\n\nMosaicking Ecozones: Mosaicking individual ecozones to create a national ecotype map.\n\nStatic Mapping of Ecosystems: Creating national combined and individual ecotype maps.\n\nStatic Ecozone Mapping: Creating individual ecozone maps.\n\n\n\n\n\nRaw code on GitHub\nSmall data files on GitHub: Data files are located in both the data and outputs folders\nFigures on GitHub\nInteractive maps on Dropbox: Please note, you must download both the .html file and its associated folder containing dependent files for the maps to function correctly."
   },
   {
     "objectID": "index.html#resources",
     "href": "index.html#resources",
-    "title": "SAR and Ecotype Project",
+    "title": "SAR and Ecosystem Project",
     "section": "",
     "text": "Raw code on GitHub\nSmall data files on GitHub: Data files are located in both the data and outputs folders\nFigures on GitHub\nInteractive maps on Dropbox: Please note, you must download both the .html file and its associated folder containing dependent files for the maps to function correctly."
   },
